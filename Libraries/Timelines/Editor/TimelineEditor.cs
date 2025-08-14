@@ -12,7 +12,7 @@ public class TimelineControlWidget : ControlObjectWidget
 
 	public TimelineControlWidget(SerializedProperty property) : base(property, true)
 	{
-		Layout = Layout.Column();
+		Layout = Layout.Row();
 		Layout.Spacing = 2;
 
 		// Get the EventTracks property from the serialized object
@@ -21,7 +21,7 @@ public class TimelineControlWidget : ControlObjectWidget
 		// Add the timeline event control
 		
 		Layout.Add(Create(events));
-		
+
 	}
 
 	protected override void OnPaint()

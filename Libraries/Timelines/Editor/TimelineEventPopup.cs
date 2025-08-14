@@ -15,8 +15,8 @@ public class TimelineEventPopup : Widget
         WindowTitle = "Timeline Event Editor";
         DeleteOnClose = true;
 
-        MinimumSize = new(800, 400);
-        Size = new(800, 400);
+        MinimumSize = new(800, 200);
+        Size = new(800, 200);
 
         Editor = new TimelineEventEditorWidget(this);
 

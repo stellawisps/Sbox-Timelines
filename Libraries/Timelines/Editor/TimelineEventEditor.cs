@@ -16,37 +16,54 @@ public partial class TimelineEventEditorWidget : Widget
 
 	public EventStopWidget.Point selectedPoint;
 
-	[Range( 0.0f, 1.0f, slider: false ), Step( 0.01f ), Title( "Time" )]
+	[Range( 0.0f, 100.0f, slider: false ), Step( 0.1f ), Title( "Time (seconds)" )]
 	public float TimeValue
 	{
-		get => selectedPoint?.Time ?? 0.0f;
+		get => selectedPoint?.AbsoluteTime ?? 0.0f;
 		set
 		{
 			if ( selectedPoint is null )
 				return;
 
-			selectedPoint.Time = value;
+			selectedPoint.AbsoluteTime = value;
+			// Convert back to normalized time for display
+			selectedPoint.Time = Value.Duration > 0 ? value / Value.Duration : 0;
 			UpdateFromPoints();
 		}
 	}
-
-	[Title( "Event Type" )]
-	public string EventType
+	
+	[Range( 0.1f, 10.0f, slider: false ), Step( 0.1f ), Title( "Track Duration (seconds)" )]
+	public float DurationValue
 	{
-		get => selectedPoint?.EventType ?? "";
+		get => Value?.Duration ?? 10.0f;
 		set
 		{
-			if ( selectedPoint is null )
-				return;
-
-			selectedPoint.EventType = value;
-			UpdateFromPoints();
+			if ( Value != null )
+			{
+				Value.Duration = Math.Max(0.1f, value);
+				UpdatePoints(); // Recalculate normalized positions
+				OnEdited();
+			}
+		}
+	}
+	
+	public string NameValue
+	{
+		get => Value?.EventId ?? "";
+		set
+		{
+			if ( Value != null )
+			{
+				Value.EventId = value;
+				OnEdited();
+			}
 		}
 	}
 
 	Label labelMultiple;
 	ControlWidget editTime;
-	ControlWidget editEventType;
+	ControlWidget editDuration;
+	ControlWidget editName;
 
 	public EventTracks _value;
 	
@@ -84,9 +101,11 @@ public partial class TimelineEventEditorWidget : Widget
 
 		// Event stops bar
 		eventBar = Layout.Add( new EventStopWidget( this ) );
-		eventBar.OnAddPoint = ( f ) =>
+		eventBar.OnAddPoint = ( normalizedTime ) =>
 		{
-			_value.AddEvent( new TimelineEvent { Time = f, EventType = "Event" } );
+			// Convert normalized time to absolute time
+			float absoluteTime = normalizedTime * Value.Duration;
+			_value.AddEvent( new TimelineEvent { Time = absoluteTime } );
 			UpdatePoints();
 			OnEdited();
 		};
@@ -104,11 +123,23 @@ public partial class TimelineEventEditorWidget : Widget
 		row.AddStretchCell( 1 );
 
 		{
-			editTime = controls.AddCell( 0, 0, new FloatControlWidget( so.GetProperty( "TimeValue" ) ) { Label = null, Icon = "timeline" } );
+			editTime = controls.AddCell( 0, 0, new FloatControlWidget( so.GetProperty( "TimeValue" ) ) { Label = "Time", Icon = "timeline" } );
 			editTime.Enabled = false;
-			editTime.MaximumWidth = 300;
+			editTime.MaximumWidth = 200;
+			editTime.MaximumHeight = 25;
 
-			var options = controls.AddCell( 1, 0, Layout.Row(), alignment: TextFlag.Left );
+			controls.AddCell( 1, 0, new Label( "Duration" ) );
+
+			editDuration = controls.AddCell( 2, 0, new FloatControlWidget( so.GetProperty( "DurationValue" ) ) {  } );
+			editDuration.MaximumWidth = 200;
+			editDuration.MaximumHeight = 25;
+			editDuration.Enabled = false;
+
+			editName = controls.AddCell( 0, 1, new StringControlWidget( so.GetProperty( "NameValue" ) ) );
+			editName.MaximumWidth = 300;
+			editName.Enabled = false;
+			
+			var options = controls.AddCell( 1, 1, Layout.Row(), alignment: TextFlag.Left );
 			options.Spacing = 8;
 
 			var delete = options.Add( new IconButton( "delete", DeletePoint ) );
@@ -124,12 +155,6 @@ public partial class TimelineEventEditorWidget : Widget
 			selectPrev.Bind( "Enabled" ).ReadOnly().From( () => selectedPoint is not null, null );
 
 			options.Add( new IconButton( "more_horiz", DoMoreOptionsMenu ) );
-		}
-
-		{
-			editEventType = controls.AddCell( 0, 1, new StringControlWidget( so.GetProperty( "EventType" ) ) );
-			editEventType.Enabled = false;
-			editEventType.MaximumWidth = 400;
 		}
 	}
 
@@ -147,25 +172,22 @@ public partial class TimelineEventEditorWidget : Widget
 	{
 		var menu = new ContextMenu( this );
 
-		menu.AddOption( new Option( "Add Event", "add", () =>
-		{
-			_value.AddEvent( new TimelineEvent { Time = 0.5f, EventType = "New Event" } );
-			UpdatePoints();
-			OnEdited();
-		} ) );
-
 		menu.AddOption( new Option( "Distribute Evenly", "balance", () =>
 		{
 			for ( int i = 0; i < eventBar.Points.Count; i++ )
 			{
-				eventBar.Points[i].Time = (float)i / Math.Max( 1, eventBar.Points.Count - 1 );
+				float normalizedTime = (float)i / Math.Max( 1, eventBar.Points.Count - 1 );
+				eventBar.Points[i].Time = normalizedTime;
+				eventBar.Points[i].AbsoluteTime = normalizedTime * Value.Duration;
 			}
 			UpdateFromPoints();
 		} ) );
 
 		menu.AddOption( new Option( "Clear All Events", "delete_sweep", () =>
 		{
-			Value = new EventTracks();
+			Value.Events = new List<TimelineEvent>();
+			eventBar.Points.Clear();
+			Update();
 		} ) );
 
 		menu.OpenAtCursor();
@@ -174,6 +196,8 @@ public partial class TimelineEventEditorWidget : Widget
 	protected override void OnPaint()
 	{
 		labelMultiple.Visible = SerializedProperty?.IsMultipleDifferentValues ?? false;
+		editDuration.Enabled = true;
+		editName.Enabled = true;
 	}
 
 	public void OnEdited()
@@ -213,8 +237,8 @@ public partial class TimelineEventEditorWidget : Widget
 				var p = new EventStopWidget.Point
 				{
 					Index = i,
-					Time = evt.Time,
-					EventType = evt.EventType,
+					Time = Value.Duration > 0 ? evt.Time / Value.Duration : 0, // Normalized for display
+					AbsoluteTime = evt.Time, // Store absolute time
 					Paint = PaintEvent,
 					Moved = ( p ) => UpdateFromPoints(),
 					Pressed = p => UpdateSelection( p )
@@ -226,7 +250,7 @@ public partial class TimelineEventEditorWidget : Widget
 
 		eventBar.Update();
 		timelineArea.Update();
-		UpdateSelection( null );
+		UpdateSelection( selectedPoint ); // Maintain selection if possible
 	}
 
 	private void UpdateFromPoints()
@@ -237,7 +261,10 @@ public partial class TimelineEventEditorWidget : Widget
 		foreach ( var p in eventBar.Points )
 		{
 			if ( p.Disabled ) continue;
-			val.AddEvent( new TimelineEvent { Time = p.Time, EventType = p.EventType } );
+			// Convert normalized time back to absolute time
+			float absoluteTime = p.Time * val.Duration;
+			p.AbsoluteTime = absoluteTime; // Update the stored absolute time
+			val.AddEvent( new TimelineEvent { Time = absoluteTime } );
 		}
 
 		skipUpdatePoints = true;
@@ -264,38 +291,15 @@ public partial class TimelineEventEditorWidget : Widget
 
 		// Event type indicator (small colored dot)
 		var dotRect = new Rect( box.Center.x - 3, box.Center.y - 3, 6, 6 );
-		Paint.SetBrush( GetEventTypeColor( p.EventType ) );
+		Paint.SetBrush( Color.Blue );
 		Paint.ClearPen();
 		Paint.DrawCircle( dotRect );
-	}
-
-	Color GetEventTypeColor( string eventType )
-	{
-		// Simple color coding based on event type
-		return eventType?.ToLower() switch
-		{
-			"sound" => Color.Green,
-			"effect" => Color.Blue,
-			"animation" => Color.Orange,
-			_ => Theme.Primary
-		};
 	}
 
 	void UpdateSelection( EventStopWidget.Point p )
 	{
 		selectedPoint = p;
 		editTime.Enabled = p is not null;
-		editEventType.Enabled = p is not null;
-	}
-
-	/// <summary>
-	/// Open a timeline event editor popup
-	/// </summary>
-	public static void OpenPopup( Widget parent, EventTracks input, Action<EventTracks> onChange )
-	{
-		var popup = new TimelineEventPopup( parent );
-		popup.AddEventTracks( () => input, onChange );
-		popup.Show();
 	}
 }
 
@@ -313,22 +317,35 @@ class TimelineAreaWidget : Widget
 	protected override void OnPaint()
 	{
 		base.OnPaint();
-
 		var rect = LocalRect.Shrink( 8, 4 );
 		
 		// Timeline background
-		Paint.SetBrush( Theme.ControlBackground );
+		Paint.SetBrush( Theme.ControlBackground.Darken( 0.5f ) );
 		Paint.ClearPen();
 		Paint.DrawRect( rect, 4 );
 
-		// Timeline ruler
+		// Draw duration info
+		var duration = _eventEditor.Value?.Duration ?? 10.0f;
+		Paint.SetFont( "Roboto", 9, 400 );
+		Paint.SetPen( Theme.TextControl.WithAlpha( 0.7f ) );
+		Paint.DrawText( rect.Shrink( 4, 2 ), $"Duration: {duration:F1}s", TextFlag.Left | TextFlag.Top );
+
+		// Timeline ruler with time markers
 		Paint.SetPen( Theme.TextControl.WithAlpha( 0.3f ), 1 );
 		for ( int i = 0; i <= 10; i++ )
 		{
 			float x = rect.Left + (rect.Width * i / 10f);
 			float tickHeight = i % 5 == 0 ? 8 : 4;
-			Paint.DrawLine( new Vector2( x, rect.Top ), new Vector2( x, rect.Top + tickHeight ) );
+			Paint.DrawLine( new Vector2( x, rect.Top + 12 ), new Vector2( x, rect.Top + 12 + tickHeight ) );
 			Paint.DrawLine( new Vector2( x, rect.Bottom ), new Vector2( x, rect.Bottom - tickHeight ) );
+			
+			// Draw time labels on major ticks
+			if ( i % 5 == 0 )
+			{
+				float timeAtTick = (i / 10f) * duration;
+				Paint.SetFont( "Roboto", 8, 400 );
+				Paint.DrawText( new Rect( x - 15, rect.Bottom - 15, 30, 10 ), $"{timeAtTick:F1}s", TextFlag.Center );
+			}
 		}
 
 		// Events
@@ -336,22 +353,23 @@ class TimelineAreaWidget : Widget
 		{
 			foreach ( var evt in _eventEditor.Value.Events )
 			{
-				float x = rect.Left + evt.Time * rect.Width;
-				Paint.SetPen( GetEventTypeColor( evt.EventType ), 3 );
-				Paint.DrawLine( new Vector2( x, rect.Top + 12 ), new Vector2( x, rect.Bottom - 12 ) );
+				// Calculate position based on absolute time
+				float normalizedTime = duration > 0 ? evt.Time / duration : 0;
+				float x = rect.Left + normalizedTime * rect.Width;
+				
+				// Clamp to visible area
+				if ( x >= rect.Left && x <= rect.Right )
+				{
+					Paint.SetPen( Color.Blue, 3 );
+					Paint.DrawLine( new Vector2( x, rect.Top + 20 ), new Vector2( x, rect.Bottom - 20 ) );
+					
+					// Draw time label
+					Paint.SetFont( "Roboto", 8, 600 );
+					Paint.SetPen( Color.Blue );
+					Paint.DrawText( new Rect( x - 20, rect.Top + 22, 40, 10 ), $"{evt.Time:F1}s", TextFlag.Center );
+				}
 			}
 		}
-	}
-
-	Color GetEventTypeColor( string eventType )
-	{
-		return eventType?.ToLower() switch
-		{
-			"sound" => Color.Green,
-			"effect" => Color.Blue,
-			"animation" => Color.Orange,
-			_ => Theme.Primary
-		};
 	}
 
 	protected override void OnMouseClick( MouseEvent e )
@@ -359,11 +377,14 @@ class TimelineAreaWidget : Widget
 		base.OnMouseClick( e );
 
 		var rect = LocalRect.Shrink( 8, 4 );
-		var delta = (e.LocalPosition.x - rect.Left) / rect.Width;
-		delta = delta.Clamp( 0, 1 );
+		var normalizedTime = (e.LocalPosition.x - rect.Left) / rect.Width;
+		normalizedTime = normalizedTime.Clamp( 0, 1 );
+
+		// Convert to absolute time
+		var absoluteTime = normalizedTime * _eventEditor.Value.Duration;
 
 		// Add event at clicked position
-		_eventEditor._value.AddEvent( new TimelineEvent { Time = delta, EventType = "Event" } );
+		_eventEditor._value.AddEvent( new TimelineEvent { Time = absoluteTime } );
 		_eventEditor.UpdatePoints();
 		_eventEditor.OnEdited();
 	}
@@ -380,8 +401,8 @@ public class EventStopWidget : Widget
 	public class Point
 	{
 		public int Index { get; set; }
-		public float Time { get; set; }
-		public string EventType { get; set; }
+		public float Time { get; set; } // Normalized time (0-1) for display positioning
+		public float AbsoluteTime { get; set; } // Absolute time in seconds
 		public Action<Point> Paint { get; set; }
 		public Action<Point> Pressed { get; set; }
 		public Action<Point> Moved { get; set; }

@@ -429,16 +429,155 @@
           "Tint": "1,0,0.93333,1"
         },
         {
-          "__type": "Sandbox.TimelineTest",
-          "__guid": "913e1d6d-ed5e-4cbb-873c-31c28037c493",
+          "__type": "Sandbox.ShakingCubeTimelineTest",
+          "__guid": "b5f83c2f-2da8-42b5-8bd4-d74e06034182",
           "__enabled": true,
-          "MyTimeline": null,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,
           "OnComponentFixedUpdate": null,
           "OnComponentStart": null,
           "OnComponentUpdate": null
+        },
+        {
+          "__type": "Timeline.Timeline",
+          "__guid": "e8513e06-166e-4793-9a3d-6370e66364b4",
+          "__enabled": true,
+          "AutoPlay": false,
+          "Duration": 1,
+          "EventTracks": [
+            {
+              "EventId": "jump",
+              "Events": [
+                {
+                  "Time": 0.7978723,
+                  "EventId": null
+                },
+                {
+                  "Time": 3.0239363,
+                  "EventId": null
+                },
+                {
+                  "Time": 5.5372343,
+                  "EventId": null
+                },
+                {
+                  "Time": 9.773936,
+                  "EventId": null
+                }
+              ],
+              "Duration": 10,
+              "Count": 4
+            }
+          ],
+          "FloatCurves": [
+            {
+              "CurveId": "yaw",
+              "Curve": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "in": 0,
+                  "out": 0,
+                  "mode": "Mirrored"
+                },
+                {
+                  "x": 0.5,
+                  "y": 1,
+                  "in": 0,
+                  "out": 0,
+                  "mode": "Mirrored"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "in": 0,
+                  "out": 0,
+                  "mode": "Mirrored"
+                }
+              ],
+              "Enabled": true,
+              "Loop": true
+            },
+            {
+              "CurveId": "pitch",
+              "Curve": {
+                "rangey": "0,180",
+                "frames": [
+                  {
+                    "x": 0,
+                    "y": 1,
+                    "in": 3.1415927,
+                    "out": -3.1415927,
+                    "mode": "Mirrored"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0,
+                    "in": -0,
+                    "out": -0,
+                    "mode": "Mirrored"
+                  }
+                ]
+              },
+              "Enabled": true,
+              "Loop": false
+            },
+            {
+              "CurveId": "roll",
+              "Curve": {
+                "rangex": "0,3",
+                "rangey": "0,360",
+                "frames": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "in": 0,
+                    "out": 0,
+                    "mode": "Mirrored"
+                  },
+                  {
+                    "x": 0.12031252,
+                    "y": 1,
+                    "in": 0,
+                    "out": 0,
+                    "mode": "Mirrored"
+                  },
+                  {
+                    "x": 0.5546875,
+                    "y": 0.011111111,
+                    "in": 0,
+                    "out": 0,
+                    "mode": "Mirrored"
+                  },
+                  {
+                    "x": 0.7078125,
+                    "y": 1,
+                    "in": 0,
+                    "out": 0,
+                    "mode": "Mirrored"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0,
+                    "in": 0,
+                    "out": 0,
+                    "mode": "Mirrored"
+                  }
+                ]
+              },
+              "Enabled": true,
+              "Loop": true
+            }
+          ],
+          "Loop": false,
+          "OnComponentDestroy": null,
+          "OnComponentDisabled": null,
+          "OnComponentEnabled": null,
+          "OnComponentFixedUpdate": null,
+          "OnComponentStart": null,
+          "OnComponentUpdate": null,
+          "PlaybackSpeed": 1
         }
       ],
       "Children": []
