@@ -535,8 +535,6 @@ public class Timeline : Component
         _triggeredEvents.Add(evt);
         OnEventTriggered?.Invoke(GameObject, eventId, evt);
 
-        var direction = PlaybackSpeed >= 0 ? "→" : "←";
-        Log.Info($"Timeline Event {direction}: {eventId} @ {evt.Time:F2}s");
     }
 
     /// <summary>
