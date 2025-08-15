@@ -339,13 +339,6 @@ class TimelineAreaWidget : Widget
 			Paint.DrawLine( new Vector2( x, rect.Top + 12 ), new Vector2( x, rect.Top + 12 + tickHeight ) );
 			Paint.DrawLine( new Vector2( x, rect.Bottom ), new Vector2( x, rect.Bottom - tickHeight ) );
 			
-			// Draw time labels on major ticks
-			if ( i % 5 == 0 )
-			{
-				float timeAtTick = (i / 10f) * duration;
-				Paint.SetFont( "Roboto", 8, 400 );
-				Paint.DrawText( new Rect( x - 15, rect.Bottom - 15, 30, 10 ), $"{timeAtTick:F1}s", TextFlag.Center );
-			}
 		}
 
 		// Events
@@ -362,11 +355,6 @@ class TimelineAreaWidget : Widget
 				{
 					Paint.SetPen( Color.Blue, 3 );
 					Paint.DrawLine( new Vector2( x, rect.Top + 20 ), new Vector2( x, rect.Bottom - 20 ) );
-					
-					// Draw time label
-					Paint.SetFont( "Roboto", 8, 600 );
-					Paint.SetPen( Color.Blue );
-					Paint.DrawText( new Rect( x - 20, rect.Top + 22, 40, 10 ), $"{evt.Time:F1}s", TextFlag.Center );
 				}
 			}
 		}

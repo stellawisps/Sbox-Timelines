@@ -450,19 +450,19 @@
               "EventId": "jump",
               "Events": [
                 {
-                  "Time": 0.7978723,
+                  "Time": 0.27925533,
                   "EventId": null
                 },
                 {
-                  "Time": 3.0239363,
+                  "Time": 0.55851066,
                   "EventId": null
                 },
                 {
-                  "Time": 5.5372343,
+                  "Time": 2.8989363,
                   "EventId": null
                 },
                 {
-                  "Time": 9.773936,
+                  "Time": 4.867021,
                   "EventId": null
                 }
               ],
@@ -482,7 +482,7 @@
                   "mode": "Mirrored"
                 },
                 {
-                  "x": 0.5,
+                  "x": 0.4703125,
                   "y": 1,
                   "in": 0,
                   "out": 0,
@@ -570,7 +570,7 @@
               "Loop": true
             }
           ],
-          "Loop": false,
+          "Loop": true,
           "OnComponentDestroy": null,
           "OnComponentDisabled": null,
           "OnComponentEnabled": null,

@@ -30,13 +30,7 @@ public class TimelineEventControlWidget : ControlWidget
        
        // Draw Event ID and duration info
        var topInfoHeight = 14;
-       if (!string.IsNullOrEmpty(value?.EventId))
-       {
-          Paint.SetFont( "Roboto", 9, 600 );
-          Paint.SetPen( Theme.Primary );
-          var labelRect = new Rect(inner.Left + 4, inner.Top + 2, inner.Width - 8, 12);
-          Paint.DrawText( labelRect, $"'{value.EventId}'", TextFlag.Left | TextFlag.Top );
-       }
+
 
        // Draw duration info
        var duration = value?.Duration ?? 10.0f;
@@ -88,14 +82,6 @@ public class TimelineEventControlWidget : ControlWidget
                 Paint.SetBrush( eventColor );
                 Paint.ClearPen();
                 Paint.DrawCircle( dotRect );
-                
-                // Draw time label for events (if there's space)
-                if ( value.Events.Count <= 5 ) // Only show labels when not too crowded
-                {
-                   Paint.SetFont( "Roboto", 7, 600 );
-                   Paint.SetPen( eventColor );
-                   Paint.DrawText( new Rect( x - 20, rulerTop + 10, 40, 8 ), $"{evt.Time:F1}s", TextFlag.Center );
-                }
              }
           }
 
@@ -116,6 +102,14 @@ public class TimelineEventControlWidget : ControlWidget
        // Draw border around timeline area
        Paint.SetBrushAndPen( Color.Transparent, col, 2 );
        Paint.DrawRect( inner, 3 );
+       
+       if (!string.IsNullOrEmpty(value?.EventId))
+       {
+	       Paint.SetFont( "Roboto", 9, 600 );
+	       Paint.SetPen( Theme.Primary );
+	       var labelRect = new Rect(inner.Left + 4, inner.Top + 2, inner.Width - 8, 12);
+	       Paint.DrawText( labelRect, $"'{value.EventId}'", TextFlag.Left | TextFlag.Top );
+       }
     }
 
     Color GetEventIdColor( string eventId )

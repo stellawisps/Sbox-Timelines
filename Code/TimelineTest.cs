@@ -5,7 +5,6 @@ namespace Sandbox;
 
 public class ShakingCubeTimelineTest : TimelineEventDispatcher
 {
-	[RequireComponent] private Timeline.Timeline Timeline { get; set; }
 	protected override void RegisterEvents()
 	{
 		BindEvent( "jump", OnJump );
@@ -13,9 +12,18 @@ public class ShakingCubeTimelineTest : TimelineEventDispatcher
 		BindFloatCurve( "roll",RotateRoll );
 		BindFloatCurve( "pitch",RotatePitch );
 	}
-
+	public void RotateYaw(float rotation)
+	{
+		var ee = CubeRotation;
+		ee.yaw = rotation;
+		CubeRotation = ee;
+	}
+	public void OnJump()
+	{
+		WorldPosition += new Vector3( 0, 0, 20 );
+	}
 	private Angles CubeRotation = Angles.Zero;
-
+	[RequireComponent] private Timeline.Timeline Timeline { get; set; }
 	protected override void OnStart()
 	{
 		Timeline.Play();
@@ -26,12 +34,7 @@ public class ShakingCubeTimelineTest : TimelineEventDispatcher
 		WorldRotation = CubeRotation;
 	}
 	
-	public void RotateYaw(float rotation)
-	{
-		var ee = CubeRotation;
-		ee.yaw = rotation;
-		CubeRotation = ee;
-	}
+	
 	public void RotateRoll(float rotation)
 	{
 		var ee = CubeRotation;
@@ -47,9 +50,6 @@ public class ShakingCubeTimelineTest : TimelineEventDispatcher
 	}
 	
 
-	public void OnJump()
-	{
-		WorldPosition += new Vector3( 0, 0, 20 );
-	}
+	
 	
 }

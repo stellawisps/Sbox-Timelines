@@ -244,8 +244,9 @@ public class TimelineEventDispatcher : Component
 
     private void OnTimelineEvent(GameObject gameObject, string eventId, TimelineEvent evt)
     {
+	    if ( !gameObject.IsValid() || !GameObject.IsValid() ) return;
         // Only handle events for our GameObject
-        if (gameObject != GameObject)
+        if (gameObject.Root != GameObject.Root)
             return;
 
         // Try simple action first
@@ -263,8 +264,9 @@ public class TimelineEventDispatcher : Component
 
     private void OnFloatCurveUpdated(GameObject gameObject, string curveId, float value)
     {
+	    if ( !gameObject.IsValid() || !GameObject.IsValid() ) return;
         // Only handle curves for our GameObject
-        if (gameObject != GameObject)
+        if (gameObject.Root != GameObject.Root)
             return;
 
         // Try float curve binding

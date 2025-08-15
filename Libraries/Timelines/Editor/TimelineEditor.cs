@@ -3,8 +3,6 @@ using Sandbox;
 
 namespace Timeline;
 
-
-[CustomEditor(typeof(Timeline))]
 public class TimelineControlWidget : ControlObjectWidget
 {
 	// Whether or not this control supports multi-editing (if you have multiple GameObjects selected)
